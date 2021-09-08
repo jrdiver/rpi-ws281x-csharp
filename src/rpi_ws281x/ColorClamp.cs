@@ -15,7 +15,7 @@ namespace rpi_ws281x {
             float tM = Math.Max(rI, Math.Max(gI, bI));
 
             //If the maximum value is 0, immediately return pure black.
-            if(tM == 0) { return Color.FromArgb(0, 0, 0,0); }
+            if(tM == 0) { return Color.Empty; }
 
             //This section serves to figure out what the color with 100% hue is
             var multiplier = 255.0f / tM;

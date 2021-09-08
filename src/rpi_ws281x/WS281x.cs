@@ -1,9 +1,8 @@
 ﻿using Native;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace rpi_ws281x
 {
@@ -32,7 +31,7 @@ namespace rpi_ws281x
 				channel_1 = InitChannel(1, settings.Controllers)
 			};
 			
-			//Pin the object in memory. Otherwies GC will probably move the object to another memory location.
+			//Pin the object in memory. Otherwise GC will probably move the object to another memory location.
 			//This would cause errors because the native library has a pointer on the memory location of the object.
 			_ws2811Handle = GCHandle.Alloc(_ws2811, GCHandleType.Pinned);
 
@@ -54,7 +53,7 @@ namespace rpi_ws281x
                     Marshal.Copy(settings.GammaCorrection.ToArray(), 0, _ws2811.channel_1.gamma, settings.GammaCorrection.Count);
 			}
 
-			//Disposing is only allowed if the init was successfull.
+			//Disposing is only allowed if the init was successful.
 			//Otherwise the native cleanup function throws an error.
 			_isDisposingAllowed = true;
 		}
@@ -69,14 +68,13 @@ namespace rpi_ws281x
 
 			if (_controllers.ContainsKey(0) && (force || _controllers[0].IsDirty))
 			{
-				var ledColor = _controllers[0].GetColors(true);
-				Marshal.Copy(ledColor, 0, _ws2811.channel_0.leds, ledColor.Length);
+				var data = _controllers[0].GetColors(true);
+				Marshal.Copy(data, 0, _ws2811.channel_0.leds, data.Length);
 				shouldRender = true;
 			}
-			if (_controllers.ContainsKey(1) && (force || _controllers[1].IsDirty))
-			{
-				var ledColor = _controllers[1].GetColors(true);
-				Marshal.Copy(ledColor, 0, _ws2811.channel_1.leds, ledColor.Length);
+			if (_controllers.ContainsKey(1) && (force || _controllers[1].IsDirty)) {
+				var data = _controllers[1].GetColors(true);
+				Marshal.Copy(data, 0, _ws2811.channel_1.leds, data.Length);
 				shouldRender = true;
 			}
 			
@@ -88,6 +86,51 @@ namespace rpi_ws281x
 					throw WS281xException.Create(result, "rendering");
 				}
 			}
+		}
+		
+		/// <summary>
+		/// Renders the content of the channels
+		/// </summary>
+		/// <param name="force">Force LEDs to updated - default only updates if when a change is done</param>
+		public async Task RenderAsync(bool force = false)
+		{
+			var shouldRender = false;
+
+			if (_controllers.ContainsKey(0) && (force || _controllers[0].IsDirty)) {
+				var data = _controllers[0].GetColors(true);
+				var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+				try {
+					var pointer = handle.AddrOfPinnedObject();
+					_ws2811.channel_0.leds = pointer;
+					shouldRender = true;
+				} finally {
+					if (handle.IsAllocated) {
+						handle.Free();
+					}
+				}
+			}
+			if (_controllers.ContainsKey(1) && (force || _controllers[1].IsDirty)) {
+				var data = _controllers[1].GetColors(true);
+				var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+				try {
+					var pointer = handle.AddrOfPinnedObject();
+					_ws2811.channel_1.leds = pointer;
+					shouldRender = true;
+				} finally {
+					if (handle.IsAllocated) {
+						handle.Free();
+					}
+				}
+			}
+			
+			if (shouldRender) {
+				var result = PInvoke.ws2811_render(ref _ws2811);
+				if (result != ws2811_return_t.WS2811_SUCCESS) {
+					throw WS281xException.Create(result, "rendering");
+				}
+			}
+
+			await Task.FromResult(true);
 		}
 
 		
@@ -194,26 +237,7 @@ namespace rpi_ws281x
 			return channel;
 		}
 
-        #region Obsolete
-
-		[Obsolete("GetMessageForStatusCode is depreciated. Returned string is mangled due to ANSI/UNICODE conversion. Use WS281xException.GetErrorMessage(...) instead.")]
-		public string GetMessageForStatusCode(ws2811_return_t statusCode)
-		{
-			var strPointer = PInvoke.ws2811_get_return_t_str((int)statusCode);
-			return Marshal.PtrToStringAuto(strPointer);
-		}
-
-        [Obsolete("SetLEDColor is depreciated, please use GetController(controllerType).SetLED(ledID,color) instead")]
-        public void SetLEDColor(int channelIndex, int ledID, Color color)
-        {
-            if (_controllers.ContainsKey(channelIndex))
-            {
-                _controllers[channelIndex].SetLED(ledID, color);
-            }
-        }
-
-        #endregion
-
+        
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 

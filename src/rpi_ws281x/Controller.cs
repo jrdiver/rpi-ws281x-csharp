@@ -20,8 +20,11 @@ namespace rpi_ws281x
 			StripType = stripType;
 			ControllerType = controllerType;
 
-            LEDColors = Enumerable.Range(0, ledCount).Select(x => new LED()).ToList();
-        }
+			LEDColors = new Color[ledCount];
+			for (var i = 0; i < ledCount; i++) {
+				LEDColors[i] = Color.Empty;
+			}
+		}
 
 		/// <summary>
 		/// Set LED to a Color
@@ -33,7 +36,12 @@ namespace rpi_ws281x
 			if (cName.Contains("W") && cName.Contains("SK")) {
 				color = ColorClamp.ClampAlpha(color);
 			}
-			LEDColors[ledID].Color = color;
+			LEDColors[ledID] = color;
+			IsDirty = true;
+		}
+		
+		public void SetLEDS(Color[] color) {
+			LEDColors = color;
 			IsDirty = true;
 		}
 
@@ -46,7 +54,10 @@ namespace rpi_ws281x
 			if (cName.Contains("W") && cName.Contains("SK")) {
 				color = ColorClamp.ClampAlpha(color);
 			}
-			LEDColors.ForEach(led => led.Color = color);
+
+			for (var i = 0; i < LEDColors.Length; i++) {
+				LEDColors[i] = color;
+			}
 			IsDirty = true;
 		}
 		
@@ -57,7 +68,9 @@ namespace rpi_ws281x
 		/// </summary>
 		public void Reset()
 		{
-			LEDColors.ForEach(led => led.Color = Color.Empty);
+			for (var i = 0; i < LEDColors.Length; i++) {
+				LEDColors[i] = Color.Empty;
+			}
 			IsDirty = true;
 		}
 
@@ -68,10 +81,15 @@ namespace rpi_ws281x
 		internal int[] GetColors(bool clearDirty = false)
 		{
 			if (clearDirty) IsDirty = false;
-			return LEDColors.Select(x => x.RGBValue).ToArray();
+			var op = new int[LEDColors.Length];
+			for (var i = 0; i < LEDColors.Length; i++) {
+				op[i] = LEDColors[i].ToArgb();
+			}
+
+			return op;
 		}
 		
-		internal List<LED> LEDColors { get; private set; }
+		internal Color[] LEDColors { get; private set; }
 
 		/// <summary>
 		/// Returns the GPIO pin which is connected to the LED strip
@@ -104,15 +122,15 @@ namespace rpi_ws281x
         /// <summary>
         /// Returns all LEDs on this channel
         /// </summary>
-        public IReadOnlyCollection<LED> LEDs => LEDColors.AsReadOnly();
+        public IReadOnlyCollection<Color> LEDs => LEDColors;
 
 		/// <summary>
 		/// The number of LEDs in the strip
 		/// </summary>
         public int LEDCount {
-			get => LEDColors.Count;
+			get => LEDColors.Length;
 			set {
-				LEDColors = Enumerable.Range(0, value).Select(x => new LED()).ToList();
+				LEDColors = Enumerable.Range(0, value).Select(x => Color.Empty).ToArray();
 				IsDirty = true;
 			}
 		}
