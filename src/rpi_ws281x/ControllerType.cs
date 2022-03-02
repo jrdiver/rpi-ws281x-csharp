@@ -1,11 +1,10 @@
-namespace rpi_ws281x
+namespace rpi_ws281x; 
+
+public enum ControllerType
 {
-    public enum ControllerType
-    {
-        Unknown,
-        PWM0,
-        PWM1,
-        PCM,
-        SPI
-    }
+    Unknown,
+    PWM0,
+    PWM1,
+    PCM,
+    SPI
 }

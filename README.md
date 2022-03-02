@@ -9,7 +9,6 @@
 This fork contains the following changes:
 * Add proper channel creation for various GPIO Pins, auto controller selection based on GPIO PIN input
 * Add clamping method for RGB+W LEDs to return proper white value and avoid brownouts
-* Simplify strip creation/usage by removing need to call the controller directly
 * Add on-the-fly changes for strip brightness and count without needing to re-initialize the strip
 * Added fix for [.Net Core Exception Issue](https://github.com/rpi-ws281x/rpi-ws281x-csharp/issues/2).
 * Added default Gamma Correction Map based on [this Adafruit document](https://learn.adafruit.com/led-tricks-gamma-correction/the-issue).
@@ -35,27 +34,31 @@ var settings = Settings.CreateDefaultSettings(false);
 //Use 16 LEDs and GPIO Pin 18.
 //Set brightness to maximum (255)
 //Use Unknown as strip type. Then the type will be set in the native assembly.
-var controller = settings.AddController(16, Pin.Gpio18, StripType.WS2812_STRIP, 255, false)
+var controller = settings.AddController(16, Pin.Gpio18, StripType.WS2812_STRIP, ControllerType.PWM0, 255, false)
 
 using (var rpi = new WS281x(settings))
 {
   // Set the color of the first LED of controller 0 to blue
-  rpi.SetLED(0, Color.Blue);
+  controller.SetLED(0, Color.Blue);
   //Set the color of the second LED of controller 0 to red
-  rpi.SetLED(1, Color.Red);
+  controller.SetLED(1, Color.Red);
   rpi.Render();
-  // Retrieve the existing brightness
-  var brightness = rpi.GetBrightness();
-  // Set the strip brightness to 128 - render is automatically called
-  rpi.SetBrightness(128);
-  // Retrieve existing LED Count
-  var ledCount = rpi.GetLedCount();
-  // Update the strip count to 32 - render is automatically called
-  rpi.SetLedCount(32);
+  // Retrieve the existing brightness for controller 0
+  var brightness = rpi.GetBrightness(0);
+  OR
+  var brightness = rpi.GetBrightness(); // Default ID is 0
+  // Set the strip brightness to 128 for controller 0 - render is automatically called
+  rpi.SetBrightness(128, 0);
+  OR
+  rpi.SetBrightness(128); // Default is 0
+  // Retrieve existing LED Count for controller 1
+  var ledCount = rpi.GetLedCount(1);
+  // Update the strip count to 32 for controller 1 - render is automatically called
+  rpi.SetLedCount(32, 1);
   // Set all the LED colors to Red - render is automatically called
   rpi.SetAll(Color.Green);
   // Reset the strip and destroy it
-  rpi.Rest();
+  rpi.Reset();
   rpi.Dispose();
 }
 ```
@@ -83,6 +86,6 @@ The wrapper was tested with following setup:
 | Raspberry model   | Controller | GPIO Pin | DMA channel | Result |
 |-------------------|------------|----------|-------------|--------|
 | 3 Model B Rev 2   | WS2812B    | 18       | 5, 10       | Success|
-| 4 Model B Rev 2   | WS2812B    | 18       | 5, 10       | Success|
+| 4 Model B Rev 2   | WS2812B    | 18, 19   | 5, 10       | Success|
 
 Please feel free to add some more test cases.
