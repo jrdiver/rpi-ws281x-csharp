@@ -1,21 +1,24 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Runtime.InteropServices;
 
-namespace rpi_ws281x.Native; 
+#endregion
 
-internal class PInvoke
-{
+namespace rpi_ws281x.Native;
+
+internal class PInvoke {
 	public const int RPI_PWM_CHANNELS = 2;
 
 	[DllImport("ws2811.so")]
 	public static extern ws2811_return_t ws2811_init(ref ws2811_t ws2811);
-		
+
 	[DllImport("ws2811.so")]
 	public static extern ws2811_return_t ws2811_render(ref ws2811_t ws2811);
 
 	[DllImport("ws2811.so")]
 	public static extern ws2811_return_t ws2811_wait(ref ws2811_t ws2811);
-		
+
 	[DllImport("ws2811.so")]
 	public static extern void ws2811_fini(ref ws2811_t ws2811);
 

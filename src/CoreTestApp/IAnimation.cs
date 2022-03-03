@@ -1,6 +1,5 @@
-namespace CoreTestApp; 
+namespace CoreTestApp;
 
-public interface IAnimation
-{
+public interface IAnimation {
 	void Execute(AbortRequest request);
 }

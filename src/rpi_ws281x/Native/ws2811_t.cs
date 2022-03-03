@@ -1,11 +1,14 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Runtime.InteropServices;
 
-namespace rpi_ws281x.Native; 
+#endregion
+
+namespace rpi_ws281x.Native;
 
 [StructLayout(LayoutKind.Sequential)]
-internal struct ws2811_t
-{
+internal struct ws2811_t {
 	public long render_wait_time;
 	public IntPtr device;
 	public IntPtr rpi_hw;

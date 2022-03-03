@@ -1,11 +1,14 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Runtime.InteropServices;
 
-namespace rpi_ws281x.Native; 
+#endregion
+
+namespace rpi_ws281x.Native;
 
 [StructLayout(LayoutKind.Sequential)]
-internal struct ws2811_channel_t
-{
+internal struct ws2811_channel_t {
 	public int gpionum;
 	public int invert;
 	public int count;

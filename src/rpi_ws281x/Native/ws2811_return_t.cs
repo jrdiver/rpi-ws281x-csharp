@@ -1,7 +1,6 @@
-namespace rpi_ws281x.Native; 
+namespace rpi_ws281x.Native;
 
-public enum ws2811_return_t
-{
+public enum ws2811_return_t {
 	WS2811_SUCCESS = 0,
 	WS2811_ERROR_GENERIC = -1,
 	WS2811_ERROR_OUT_OF_MEMORY = -2,

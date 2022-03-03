@@ -1,43 +1,40 @@
-using rpi_ws281x;
+#region
+
 using System;
 using System.Drawing;
 using System.Threading;
+using rpi_ws281x;
 
-namespace CoreTestApp; 
+#endregion
 
-public class ColorWipe : IAnimation
-{
-    public void Execute(AbortRequest request)
-    {
-        Console.Clear();
-        Console.Write("How many LEDs do you want to use: ");
+namespace CoreTestApp;
 
-        var ledCount = int.Parse(Console.ReadLine() ?? string.Empty);
-        var settings = Settings.CreateDefaultSettings();
+public class ColorWipe : IAnimation {
+	public void Execute(AbortRequest request) {
+		Console.Clear();
+		Console.Write("How many LEDs do you want to use: ");
 
-        settings.AddController(ledCount, Pin.Gpio18, StripType.WS2811_STRIP_RGB);
-        using var device = new WS281x(settings);
-        while (!request.IsAbortRequested)
-        {
-            Wipe(device, Color.Red);
-            Wipe(device, Color.Green);
-            Wipe(device, Color.Blue);
-        }
-        device.Reset();
-    }
+		var ledCount = int.Parse(Console.ReadLine() ?? string.Empty);
+		var settings = Settings.CreateDefaultSettings();
 
-    private static void Wipe(WS281x device, Color color)
-    {
-        var controller = device.GetController();
-        foreach (var led in controller.LEDs)
-        {
-            led.Color = color;
-            device.Render();
+		settings.AddController(ledCount, Pin.Gpio18, StripType.WS2811_STRIP_RGB);
+		using var device = new WS281x(settings);
+		while (!request.IsAbortRequested) {
+			Wipe(device, Color.Red);
+			Wipe(device, Color.Green);
+			Wipe(device, Color.Blue);
+		}
 
-            // wait for a minimum of 5 milliseconds
-            var waitPeriod = (int)Math.Max(500.0 / controller.LEDCount, 5.0); 
+		device.Reset();
+	}
 
-            Thread.Sleep(waitPeriod);
-        }
-    }
+	private static void Wipe(WS281x device, Color color) {
+		var controller = device.GetController();
+		for (var i = 0; i < controller.LEDCount; i++) {
+			controller.SetLED(i, color);
+			device.Render();
+			var waitPeriod = (int)Math.Max(500.0 / controller.LEDCount, 5.0);
+			Thread.Sleep(waitPeriod);
+		}
+	}
 }
