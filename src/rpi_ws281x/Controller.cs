@@ -1,7 +1,6 @@
 ﻿#region
 
 using System.Drawing;
-using System.Linq;
 
 #endregion
 
@@ -33,11 +32,11 @@ public class Controller {
 	///     The number of LEDs in the strip
 	/// </summary>
 	public int LEDCount {
-		get => LEDColors.Length;
+		get => LedColors.Length;
 		set {
-			var nc = new Color[value];
+			LedColors = new int[value];
 			for (var i = 0; i < value; i++) {
-				nc[i] = Color.FromArgb(0, 0, 0, 0);
+				LedColors[i] = 0;
 			}
 
 			IsDirty = true;
@@ -49,6 +48,8 @@ public class Controller {
 	///     The type defines the ordering of the colors.
 	/// </summary>
 	public StripType StripType { get; }
+	
+	public bool IsRGBW { get; }
 
 	/// <summary>
 	///     Indicates if the colors assigned to the LED has changed and the LED should be updated.
@@ -59,9 +60,14 @@ public class Controller {
 	///     Returns the GPIO pin which is connected to the LED strip
 	/// </summary>
 	internal int GPIOPin { get; }
+	
+	/// <summary>
+	///		Keep an empty array in memory of our LED colors and use it for our rendering sequence.
+	/// </summary>
 
-	private Color[] LEDColors { get; set; }
+	private int[] LedColors { get; set; }
 
+	
 	internal Controller(int ledCount, Pin pin, byte brightness, bool invert, StripType stripType,
 		ControllerType controllerType) {
 		IsDirty = false;
@@ -70,9 +76,13 @@ public class Controller {
 		Invert = invert;
 		Brightness = brightness;
 		StripType = stripType;
+		var cName = StripType.ToString();
+		IsRGBW = cName.Contains("W") && cName.Contains("SK");
 		ControllerType = controllerType;
-
-		LEDColors = Enumerable.Range(0, ledCount).Select(_ => Color.FromArgb(0, 0, 0, 0)).ToArray();
+		LedColors = new int[ledCount];
+		for (var i = 0; i < ledCount; i++) {
+			LedColors[i] = 0;
+		}
 	}
 
 	/// <summary>
@@ -81,17 +91,16 @@ public class Controller {
 	/// <param name="ledID">LED to set (0 based)</param>
 	/// <param name="color">Color to use</param>
 	public void SetLED(int ledID, Color color) {
-		var cName = StripType.ToString();
-		if (cName.Contains("W") && cName.Contains("SK")) {
-			color = ColorClamp.ClampAlpha(color);
-		}
-
-		LEDColors[ledID] = color;
+		if (IsRGBW) color = ColorClamp.ClampAlpha(color);
+		LedColors[ledID] = color.ToArgb();
 		IsDirty = true;
 	}
 
 	public void SetLEDS(Color[] color) {
-		LEDColors = color;
+		for (var i = 0; i < color.Length; i++) {
+			if (IsRGBW) color[i] = ColorClamp.ClampAlpha(color[i]);
+			LedColors[i] = color[i].ToArgb();
+		}
 		IsDirty = true;
 	}
 
@@ -100,16 +109,11 @@ public class Controller {
 	/// </summary>
 	/// <param name="color">color to set all the LEDs</param>
 	public void SetAll(Color color) {
-		var cName = StripType.ToString();
-		if (cName.Contains("W") && cName.Contains("SK")) {
-			color = ColorClamp.ClampAlpha(color);
-		}
-
-		var nc = new Color[LEDCount];
+		if (IsRGBW) color = ColorClamp.ClampAlpha(color);
+		var na = new int[LEDCount];
 		for (var i = 0; i < LEDCount; i++) {
-			nc[i] = color;
+			na[i] = color.ToArgb();
 		}
-
 		IsDirty = true;
 	}
 
@@ -118,12 +122,12 @@ public class Controller {
 	///     Turn off all the LEDs in the strip
 	/// </summary>
 	public void Reset() {
-		var nc = new Color[LEDCount];
+		var na = new int[LEDCount];
 		for (var i = 0; i < LEDCount; i++) {
-			nc[i] = Color.FromArgb(0, 0, 0, 0);
+			na[i] = 0;
 		}
 
-		LEDColors = nc;
+		LedColors = na;
 		IsDirty = true;
 	}
 
@@ -136,6 +140,6 @@ public class Controller {
 			IsDirty = false;
 		}
 
-		return LEDColors.Select(x => x.ToArgb()).ToArray();
+		return LedColors;
 	}
 }

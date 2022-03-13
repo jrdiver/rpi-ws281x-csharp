@@ -31,10 +31,12 @@ internal class Program {
 		Console.WriteLine("0 - Exit");
 		Console.WriteLine("1 - Color wipe animation");
 		Console.WriteLine("2 - Rainbow color animation" + Environment.NewLine);
+		Console.WriteLine("3 - Set All Colors" + Environment.NewLine);
+		Console.WriteLine("4 - LED Count Test" + Environment.NewLine);
 		Console.WriteLine("Press CTRL+C to abort current test." + Environment.NewLine);
 		Console.Write("What is your choice: ");
 		_input = int.Parse(Console.ReadLine() ?? "0");
-		if (_input == 3) {
+		if (_input == 4) {
 			LedCountTest();
 		}
 
@@ -52,7 +54,8 @@ internal class Program {
 	private static Dictionary<int, IAnimation> GetAnimations() {
 		var result = new Dictionary<int, IAnimation> {
 			[1] = new ColorWipe(),
-			[2] = new RainbowColorAnimation()
+			[2] = new RainbowColorAnimation(),
+			[3] = new SetAll()
 		};
 
 		return result;

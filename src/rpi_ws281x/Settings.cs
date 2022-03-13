@@ -95,7 +95,7 @@ public class Settings {
 	///     See <a href="https://learn.adafruit.com/led-tricks-gamma-correction/the-issue">Gamma Correction Issue</a>.
 	/// </remarks>
 	public void SetGammaCorrection(float gamma, int max_in, int max_out) {
-		if (gamma >= 1.0f) {
+		if (gamma > 1.0f) {
 			GammaCorrection = Enumerable.Range(0, max_in)
 				.Select(i => (byte)(Math.Pow(i / (float)max_in, gamma) * max_out + 0.5)).ToList();
 		} else {

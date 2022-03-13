@@ -1,4 +1,4 @@
-#region
+﻿#region
 
 using System;
 using System.Drawing;
@@ -9,7 +9,7 @@ using rpi_ws281x;
 
 namespace CoreTestApp;
 
-public class ColorWipe : IAnimation {
+public class SetAll : IAnimation {
 	public void Execute(AbortRequest request) {
 		Console.Clear();
 		Console.Write("How many LEDs do you want to use: ");
@@ -20,27 +20,19 @@ public class ColorWipe : IAnimation {
 		settings.AddController(ledCount, Pin.Gpio18, StripType.WS2811_STRIP_RGB);
 		using var device = new WS281x(settings);
 		while (!request.IsAbortRequested) {
-			Wipe(device, Color.Red);
-			Wipe(device, Color.Green);
-			Wipe(device, Color.Blue);
+			Setall(device, Color.Red);
+			Setall(device, Color.Green);
+			Setall(device, Color.Blue);
 		}
 
-		var controller = device.GetController();
-		var empty = new Color[ledCount];
-		for (var i = 0; i < ledCount; i++) {
-			empty[i] = Color.FromArgb(0, 0, 0);
-		}
-		controller.SetLEDS(empty);
 		device.Reset();
 	}
 
-	private static void Wipe(WS281x device, Color color) {
+	private static void Setall(WS281x device, Color color) {
 		var controller = device.GetController();
-		for (var i = 0; i < controller.LEDCount; i++) {
-			controller.SetLED(i, color);
-			device.Render();
-			var waitPeriod = (int)Math.Max(500.0 / controller.LEDCount, 5.0);
-			Thread.Sleep(waitPeriod);
-		}
+		controller.SetAll(color);
+		device.Render();
+		var waitPeriod = (int)Math.Max(500.0 / controller.LEDCount, 5.0);
+		Thread.Sleep(waitPeriod);
 	}
 }
