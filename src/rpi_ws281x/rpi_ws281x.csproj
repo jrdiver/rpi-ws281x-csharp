@@ -3,7 +3,7 @@
     <PropertyGroup Label="Build">
         <VersionPrefix>1.2.0</VersionPrefix>
         <LangVersion>latestmajor</LangVersion>
-        <TargetFrameworks>net5.0;net6.0;netcoreapp3.1;netstandard2.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net5.0;net6.0;net8.0;netstandard2.0;netstandard2.1</TargetFrameworks>
         <PackageReleaseNotes>Fix brightness setter on previous release causing flickering.</PackageReleaseNotes>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
